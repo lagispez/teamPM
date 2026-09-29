@@ -3,301 +3,152 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>主管週會專案總覽看板</title>
+<title>常用剪貼簿與片段回顧小工具</title>
 <style>
-:root{--bg:#f4f8fc;--card:#fff;--ink:#17324d;--body:#40566b;--mute:#71869a;--line:#d9e5ef;--navy:#1769aa;--red:#b42335;--amber:#b7791f;--green:#147a5b;--done:#52525b}
+:root{--bg:#f4f8fc;--card:#fff;--ink:#17324d;--body:#40566b;--mute:#71869a;--line:#d9e5ef;--red:#1769aa;--pass:#147a5b;--navy:#1769aa}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121317;--card:#1b1d23;--ink:#eef0f4;--body:#c4c7cf;--mute:#8a8f9a;--line:#2c2f37}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,"PingFang TC","Noto Sans TC",sans-serif}
-main{max-width:1400px;margin:auto;padding:22px 16px 48px}
-.eyebrow{color:var(--navy);font-weight:800;letter-spacing:.12em;font-size:13px}
+main{max-width:900px;margin:auto;padding:22px 16px 48px}
+.eyebrow{color:var(--red);font-weight:800;letter-spacing:.12em;font-size:13px}
 h1{margin:.15em 0 .2em;font-size:28px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 button,.btn{font:inherit;font-weight:800;border:0;border-radius:999px;padding:8px 16px;cursor:pointer;background:var(--navy);color:#fff}
 button.ghost,.btn.ghost{background:transparent;color:var(--navy);border:2px solid var(--navy)}
-input[type=text],select{font:inherit;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--bg);color:var(--ink);width:100%}
+input[type=text],textarea,select{font:inherit;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--bg);color:var(--ink);width:100%}
+textarea{resize:vertical;min-height:80px}
 .term-help{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:#eaf3fb;color:#1769aa;font-size:12px;font-weight:700;vertical-align:middle}
-.kanban-grid{display:grid;grid-template-columns:repeat(4,minmax(280px,1fr));gap:14px;margin-top:14px;overflow-x:auto}
-@media(max-width:1100px){.kanban-grid{grid-template-columns:1fr}}
-.column{background:color-mix(in srgb,var(--card) 92%,var(--bg));border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;min-height:550px}
-.col-header{font-weight:800;font-size:16px;padding-bottom:10px;margin-bottom:10px;border-bottom:2px solid var(--line);display:flex;justify-content:space-between;align-items:center}
-.proj-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 2px 4px rgba(0,0,0,0.03);position:relative}
-.proj-card.red{border-left:5px solid var(--red)}
-.proj-card.amber{border-left:5px solid var(--amber)}
-.proj-card.green{border-left:5px solid var(--green)}
-.proj-card.done{border-left:5px solid var(--done)}
-.proj-title{font-weight:800;font-size:17px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.proj-code{font-size:13px;color:var(--navy);background:#eaf3fb;padding:2px 8px;border-radius:999px}
-.prog-bar{background:var(--line);height:8px;border-radius:4px;overflow:hidden;margin:8px 0}
-.prog-fill{background:var(--green);height:100%;width:0%}
-.task-list{font-size:13px;color:var(--body);margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
-.task-item{display:flex;justify-content:space-between;margin-bottom:4px}
-.tag{font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;color:#fff}
-.tag.red{background:var(--red)}.tag.amber{background:var(--amber)}.tag.green{background:var(--green)}.tag.done{background:var(--done)}
-.drop{border:2px dashed var(--line);border-radius:14px;padding:16px;text-align:center;color:var(--mute);background:var(--card)}
-.drop.on{border-color:var(--navy);background:#eaf3fb}
+.grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
+.snippet-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;position:relative}
+.snippet-card header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:13px;color:var(--mute)}
+.snippet-content{white-space:pre-wrap;word-break:break-all;background:var(--bg);padding:10px;border-radius:8px;font-family:monospace;font-size:14px;margin-bottom:8px}
+.tag{font-size:12px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--line);color:var(--ink)}
 footer{margin-top:18px;font-size:13px;color:var(--mute);text-align:center}
 </style>
 </head>
 <body>
 <main>
-  <div class="eyebrow">主管週會 · 專案健康度總覽</div>
-  <h1>以專案代碼為單位的週會看板 <span class="term-help">管理者快速掌握各專案進度、關注點與協助需求</span></h1>
-  <p style="color:var(--body);margin:0 0 16px">匯入 Excel 專案進度表（CSV），系統自動依「專案代碼」彙整。管理者可一目了然看出哪些專案需要支援、哪些穩定進行中。</p>
+  <div class="eyebrow">辦公效率 · 剪貼簿回顧工具</div>
+  <h1>常用文字片段與剪貼簿回收箱 <span class="term-help">快速儲存與一鍵複製常用文字</span></h1>
+  <p style="color:var(--body);margin:0 0 16px">把經常需要複製貼上的範本、專案代碼、回覆訊息或近期複製內容記在這裡，點一下即可複製使用。資料僅存放在您的瀏覽器中。</p>
 
   <div class="card">
-    <h2>1. 匯入進度表與快速篩選 <span class="term-help">支援 Excel 匯出的 CSV 檔案</span></h2>
-    <div class="row" style="margin-bottom:10px">
-      <div class="drop" id="dropZone" style="flex:1">
-        將 <b>專案進度表.csv</b> 拖曳到這裡　或
-        <label class="btn ghost" style="cursor:pointer;display:inline-block;margin-left:8px"><input type="file" id="fileInput" accept=".csv" hidden>選擇 CSV 檔案</label>
-        <button type="button" id="loadSample" class="ghost" style="margin-left:8px">載入主管週會範例資料</button>
-      </div>
+    <h2>新增常用片段 <span class="term-help">將常用文字加入清單以供隨時取用</span></h2>
+    <div style="margin-bottom:10px">
+      <label>標題 / 類別 <input type="text" id="snipTitle" placeholder="例如：專案回報範本、客戶招呼語"></label>
+    </div>
+    <div style="margin-bottom:10px">
+      <label>內容文字 <textarea id="snipText" placeholder="在此貼上或輸入要重複使用的文字內容..."></textarea></label>
     </div>
     <div class="row">
-      <label style="flex:1">搜尋專案代碼或任務 <span class="term-help">快速過濾專案</span>
-        <input type="text" id="keywordBox" placeholder="輸入專案代碼、名稱或負責人...">
-      </label>
-      <div style="margin-top:auto">
-        <button type="button" id="exportCsv">匯出專案健康總覽 CSV</button>
-      </div>
+      <button type="button" id="addBtn">新增到片段庫</button>
+      <button type="button" class="btn ghost" id="pasteClipboardBtn">從系統剪貼簿讀取貼上 <span class="term-help">直接讀取你剛剛複製的文字</span></button>
+      <input type="text" id="searchBox" placeholder="搜尋關鍵字..." style="max-width:240px;margin-left:auto">
     </div>
   </div>
 
   <div class="card">
-    <h2>2. 專案健康度總覽看板 <span class="term-help">以專案代碼為單位的分類看板，方便週會檢視</span></h2>
-    <div class="kanban-grid">
-      <!-- 需協助 -->
-      <div class="column" data-health="red">
-        <div class="col-header" style="color:var(--red)"><span>🔴 需要協助 / 延誤</span><span id="count-red" class="tag red">0</span></div>
-        <div id="list-red" style="flex:1;overflow-y:auto"></div>
-      </div>
-      <!-- 需關注 -->
-      <div class="column" data-health="amber">
-        <div class="col-header" style="color:var(--amber)"><span>🟡 需要關注 / 趕工中</span><span id="count-amber" class="tag amber">0</span></div>
-        <div id="list-amber" style="flex:1;overflow-y:auto"></div>
-      </div>
-      <!-- 穩定進行中 -->
-      <div class="column" data-health="green">
-        <div class="col-header" style="color:var(--green)"><span>🟢 穩定進行中</span><span id="count-green" class="tag green">0</span></div>
-        <div id="list-green" style="flex:1;overflow-y:auto"></div>
-      </div>
-      <!-- 已結案 -->
-      <div class="column" data-health="done">
-        <div class="col-header" style="color:var(--done)"><span>⚫ 已結案 / 完成</span><span id="count-done" class="tag done">0</span></div>
-        <div id="list-done" style="flex:1;overflow-y:auto"></div>
-      </div>
-    </div>
+    <h2>我的片段清單 <span class="term-help">已儲存的文字片段，點擊複製</span></h2>
+    <div class="grid" id="snippetGrid"></div>
   </div>
 
   <footer>
-    專案進度看板工具 · 專為週會管理者設計
+    剪貼簿小工具 · 資料安全保存在本機瀏覽器
   </footer>
 </main>
 
 <script>
 const $ = s => document.querySelector(s);
-let rawTasks = JSON.parse(localStorage.getItem('manager_kanban_v2') || JSON.stringify([
-  { code: 'PRJ-2026-01', projName: 'AI 視覺光學檢驗系統', task: '模型測試與光源調整', assignee: '陳專案', status: '進行中', health: 'amber', due: '2026-09-30' },
-  { code: 'PRJ-2026-01', projName: 'AI 視覺光學檢驗系統', task: '產線試量產確認', assignee: '林生管', status: '待處理', health: 'amber', due: '2026-10-05' },
-  { code: 'PRJ-2026-01', projName: 'AI 視覺光學檢驗系統', task: '需求規格書審查', assignee: '王小明', status: '已完成', health: 'amber', due: '2026-09-10' },
-  
-  { code: 'PRJ-2026-02', projName: '醫療器材品管系統升級', task: 'CAPA 異常處理流程重整', assignee: '張品保', status: '延誤', health: 'red', due: '2026-09-15' },
-  { code: 'PRJ-2026-02', projName: '醫療器材品管系統升級', task: '內部稽核演練', assignee: '王小明', status: '待處理', health: 'red', due: '2026-09-28' },
-
-  { code: 'PRJ-2026-03', projName: '自動化包裝產線導入', task: '機械手臂手臂校正', assignee: '李工務', status: '進行中', health: 'green', due: '2026-10-15' },
-  { code: 'PRJ-2026-03', projName: '自動化包裝產線導入', task: '安全防護網建置', assignee: '王安全', status: '已完成', due: '2026-09-05' },
-
-  { code: 'PRJ-2026-04', projName: 'QMS 雲端表單數位化', task: '進料檢驗紀錄表上線', assignee: '趙品保', status: '已完成', health: 'done', due: '2026-08-30' }
+let snippets = JSON.parse(localStorage.getItem('my_snippets_v1') || JSON.stringify([
+  { title: '專案回報範本', text: '【進度回報】\n專案代碼：PRJ-2026-01\n本週進度：正常進行中\n待協調事項：無', time: new Date().toLocaleString() },
+  { title: '標準招呼語', text: '您好，感謝您的來信與支持，我們已收到您的需求，將盡快安排處理。', time: new Date().toLocaleString() }
 ]));
 
 function save() {
-  localStorage.setItem('manager_kanban_v2', JSON.stringify(rawTasks));
+  localStorage.setItem('my_snippets_v1', JSON.stringify(snippets));
   render();
 }
 
 function render() {
-  const kw = $('#keywordBox').value.toLowerCase();
+  const q = $('#searchBox').value.toLowerCase();
+  const grid = $('#snippetGrid');
+  const filtered = snippets.filter(s => s.title.toLowerCase().includes(q) || s.text.toLowerCase().includes(q));
   
-  // 以專案代碼 (code) 分組彙整
-  const projMap = {};
-  rawTasks.forEach(t => {
-    const code = t.code || 'PRJ-未命名';
-    if (!projMap[code]) {
-      projMap[code] = {
-        code: code,
-        projName: t.projName || code,
-        health: t.health || 'green',
-        tasks: []
-      };
-    }
-    projMap[code].tasks.push(t);
-  });
-
-  // 如果有關鍵字過濾
-  const projects = Object.values(projMap).filter(p => {
-    if (!kw) return true;
-    if (p.code.toLowerCase().includes(kw) || p.projName.toLowerCase().includes(kw)) return true;
-    return p.tasks.some(t => t.task.toLowerCase().includes(kw) || t.assignee.toLowerCase().includes(kw));
-  });
-
-  const columns = { red: [], amber: [], green: [], done: [] };
-
-  projects.forEach(p => {
-    const total = p.tasks.length;
-    const completed = p.tasks.filter(t => t.status === '已完成' || t.status === 'done').length;
-    p.pct = total ? Math.round(completed / total * 100) : 0;
-    
-    // 若所有任務都已完成，歸入 done
-    const health = (completed === total && total > 0) ? 'done' : (p.health || 'green');
-    columns[health] = columns[health] || [];
-    columns[health].push(p);
-  });
-
-  for (const h of ['red', 'amber', 'green', 'done']) {
-    const listEl = $(`#list-${h}`);
-    const countEl = $(`#count-${h}`);
-    const items = columns[h] || [];
-    countEl.textContent = items.length;
-
-    if (!items.length) {
-      listEl.innerHTML = '<div style="color:var(--mute);text-align:center;padding:20px;font-size:13px;">無專案</div>';
-      continue;
-    }
-
-    listEl.innerHTML = items.map(p => `
-      <div class="proj-card ${h}" onclick="cycleHealth('${p.code}')" title="點擊循環切換健康度燈號">
-        <div class="proj-title">
-          <span>${escapeHtml(p.projName)}</span>
-          <span class="proj-code">${escapeHtml(p.code)}</span>
-        </div>
-        <div style="font-size:12px;color:var(--mute);display:flex;justify-content:space-between;">
-          <span>完成度：${p.pct}% (${p.tasks.filter(t=>t.status==='已完成'||t.status==='done').length}/${p.tasks.length} 任務)</span>
-          <span>點擊換燈 ➔</span>
-        </div>
-        <div class="prog-bar"><div class="prog-fill" style="width:${p.pct}%; background:${h==='red'?'var(--red)':h==='amber'?'var(--amber)':h==='green'?'var(--green)':'var(--done)'}"></div></div>
-        <div class="task-list">
-          <div style="font-weight:700;margin-bottom:2px;color:var(--ink);">近期任務與負責人：</div>
-          ${p.tasks.slice(0, 3).map(t => `
-            <div class="task-item">
-              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;">• ${escapeHtml(t.task)}</span>
-              <span style="color:var(--mute);">${escapeHtml(t.assignee)} [${escapeHtml(t.status)}]</span>
-            </div>
-          `).join('')}
-          ${p.tasks.length > 3 ? `<div style="color:var(--mute);font-size:11px;margin-top:2px;">...還有 ${p.tasks.length - 3 項任務</div>` : ''}
-        </div>
-      </div>
-    `).join('');
+  if (!filtered.length) {
+    grid.innerHTML = '<div style="color:var(--mute);text-align:center;padding:20px;">沒有找到符合的片段</div>';
+    return;
   }
-}
 
-window.cycleHealth = code => {
-  const map = { 'green': 'amber', 'amber': 'red', 'red': 'done', 'done': 'green' };
-  rawTasks.forEach(t => {
-    if (t.code === code) {
-      t.health = map[t.health || 'green'];
-    }
-  });
-  save();
-};
+  grid.innerHTML = filtered.map((s, idx) => {
+    const realIdx = snippets.indexOf(s);
+    return `
+      <div class="snippet-card">
+        <header>
+          <span><b>${escapeHtml(s.title)}</b> · <small>${s.time || ''}</small></span>
+          <div>
+            <button type="button" class="btn" style="padding:4px 12px;font-size:12px;" onclick="copySnippet(${realIdx})">複製</button>
+            <button type="button" class="btn ghost" style="padding:4px 8px;font-size:12px;color:var(--stop);border-color:var(--stop);" onclick="deleteSnippet(${realIdx})">刪除</button>
+          </div>
+        </header>
+        <div class="snippet-content">${escapeHtml(s.text)}</div>
+      </div>
+    `;
+  }).join('');
+}
 
 function escapeHtml(str) {
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-// CSV 解析
-function parseCSV(text) {
-  const lines = text.split(/\r?\n/).filter(l => l.trim());
-  if (lines.length < 2) return;
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  
-  const newTasks = [];
-  for (let i = 1; i < lines.length; i++) {
-    const row = [];
-    let inQuotes = false, val = '';
-    for (let char of lines[i]) {
-      if (char === '"') { inQuotes = !inQuotes; }
-      else if (char === ',' && !inQuotes) { row.push(val.trim().replace(/^"|"$/g, '')); val = ''; }
-      else { val += char; }
-    }
-    row.push(val.trim().replace(/^"|"$/g, ''));
-
-    const obj = {};
-    headers.forEach((h, idx) => obj[h] = row[idx] || '');
-    
-    newTasks.push({
-      code: obj['專案代碼'] || obj['code'] || 'PRJ-01',
-      projName: obj['專案名稱'] || obj['projName'] || obj['專案代碼'] || '未命名專案',
-      task: obj['任務名稱'] || obj['task'] || obj['名稱'] || '未命名任務',
-      assignee: obj['負責人員'] || obj['assignee'] || obj['負責人'] || '未指定',
-      status: obj['進度追蹤'] || obj['status'] || obj['狀態'] || '待處理',
-      health: obj['健康度'] || obj['health'] || 'green',
-      due: obj['截止日期'] || obj['due'] || ''
-    });
-  }
-  if (newTasks.length) {
-    rawTasks = newTasks;
-    save();
-    alert(`成功匯入 ${newTasks.length} 筆專案任務資料！`);
-  }
-}
-
-$('#fileInput').onchange = e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => parseCSV(ev.target.result);
-  reader.readAsText(file, 'utf-8');
-};
-
-const dropZone = $('#dropZone');
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('on'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('on'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault(); dropZone.classList.remove('on');
-  const file = e.dataTransfer.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = ev => parseCSV(ev.target.result);
-    reader.readAsText(file, 'utf-8');
-  }
-});
-
-$('#loadSample').onclick = () => {
-  rawTasks = [
-    { code: 'PRJ-2026-01', projName: 'AI 視覺光學檢驗系統', task: '模型測試與光源調整', assignee: '陳專案', status: '進行中', health: 'amber', due: '2026-09-30' },
-    { code: 'PRJ-2026-01', projName: 'AI 視覺光學檢驗系統', task: '產線試量產確認', assignee: '林生管', status: '待處理', health: 'amber', due: '2026-10-05' },
-    { code: 'PRJ-2026-01', projName: 'AI 視覺光學檢驗系統', task: '需求規格書審查', assignee: '王小明', status: '已完成', health: 'amber', due: '2026-09-10' },
-    
-    { code: 'PRJ-2026-02', projName: '醫療器材品管系統升級', task: 'CAPA 異常處理流程重整', assignee: '張品保', status: '延誤', health: 'red', due: '2026-09-15' },
-    { code: 'PRJ-2026-02', projName: '醫療器材品管系統升級', task: '內部稽核演練', assignee: '王小明', status: '待處理', health: 'red', due: '2026-09-28' },
-
-    { code: 'PRJ-2026-03', projName: '自動化包裝產線導入', task: '機械手臂手臂校正', assignee: '李工務', status: '進行中', health: 'green', due: '2026-10-15' },
-    { code: 'PRJ-2026-03', projName: '自動化包裝產線導入', task: '安全防護網建置', assignee: '王安全', status: '已完成', health: 'green', due: '2026-09-05' },
-
-    { code: 'PRJ-2026-04', projName: 'QMS 雲端表單數位化', task: '進料檢驗紀錄表上線', assignee: '趙品保', status: '已完成', health: 'done', due: '2026-08-30' }
-  ];
-  save();
-  alert('已載入主管週會範例資料！');
-};
-
-$('#exportCsv').onclick = () => {
-  const headers = ['專案代碼', '專案名稱', '健康度', '任務名稱', '負責人員', '進度追蹤', '截止日期'];
-  const rows = [headers.join(',')];
-  rawTasks.forEach(t => {
-    rows.push([`"${t.code}"`, `"${t.projName || ''}"`, `"${t.health || ''}"`, `"${t.task}"`, `"${t.assignee}"`, `"${t.status}"`, `"${t.due || ''}"`].join(','));
+window.copySnippet = idx => {
+  const text = snippets[idx].text;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('已複製到剪貼簿！');
+  }).catch(err => {
+    prompt('複製失敗，請手動複製：', text);
   });
-  const csv = '\uFEFF' + rows.join('\r\n');
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = '專案健康總覽報表.csv';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
 
-$('#keywordBox').oninput = render;
+window.deleteSnippet = idx => {
+  if (confirm('確定要刪除這個片段嗎？')) {
+    snippets.splice(idx, 1);
+    save();
+  }
+};
+
+$('#addBtn').onclick = () => {
+  const title = $('#snipTitle').value.trim();
+  const text = $('#snipText').value.trim();
+  if (!text) {
+    alert('請輸入內容文字');
+    return;
+  }
+  snippets.unshift({
+    title: title || '未命名片段',
+    text: text,
+    time: new Date().toLocaleString()
+  });
+  $('#snipTitle').value = '';
+  $('#snipText').value = '';
+  save();
+};
+
+$('#pasteClipboardBtn').onclick = async () => {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (!text) {
+      alert('剪貼簿是空的');
+      return;
+    }
+    $('#snipText').value = text;
+    $('#snipTitle').value = '從剪貼簿匯入 ' + new Date().toLocaleTimeString();
+  } catch (e) {
+    alert('無法直接讀取系統剪貼簿（瀏覽器安全限制），請在文字框中按 Ctrl+V 貼上。');
+  }
+};
+
+$('#searchBox').oninput = render;
 
 render();
 </script>
