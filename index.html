@@ -42,22 +42,18 @@ footer{margin-top:18px;font-size:13px;color:var(--mute);text-align:center}
     </div>
     <button type="button" id="themeToggle" class="btn ghost" style="padding:6px 12px;font-size:13px;">🌓 切換深色/淺色</button>
   </div>
-  <p style="color:var(--body);margin:0 0 16px">經常需要複製貼上的範本、專案代碼、回覆訊息或近期內容，支援分組管理、編輯變更與表情符號插入。</p>
+  <p style="color:var(--body);margin:0 0 16px">經常需要複製貼上的範本、專案代碼、回覆訊息或近期內容，支援完全自訂分組、編輯與表情符號插入。</p>
 
   <div class="card" id="formCard">
-    <h2 id="formTitle">新增常用片段 <span class="term-help">將常用文字分類並加入表情符號</span></h2>
+    <h2 id="formTitle">新增常用片段 <span class="term-help">自行輸入自訂分組，並加入表情符號</span></h2>
     <div class="row" style="margin-bottom:10px">
       <div style="flex:2">
-        <label>標題 <input type="text" id="snipTitle" placeholder="例如：專案回報範本、客戶招呼語"></label>
+        <label>標題 <input type="text" id="snipTitle" placeholder="例如：專案進度回報"></label>
       </div>
       <div style="flex:1">
-        <label>分組分類 <span class="term-help">便於日後管理</span>
-          <select id="snipCategory">
-            <option value="常用回覆">常用回覆</option>
-            <option value="專案代碼">專案代碼</option>
-            <option value="行政範本">行政範本</option>
-            <option value="其他雜項">其他雜項</option>
-          </select>
+        <label>分組分類 <span class="term-help">自由輸入，無預設限制</span>
+          <input type="text" id="snipCategory" list="categoryList" placeholder="輸入自訂分組...">
+          <datalist id="categoryList"></datalist>
         </label>
       </div>
     </div>
@@ -79,10 +75,6 @@ footer{margin-top:18px;font-size:13px;color:var(--mute);text-align:center}
       <div class="row" style="gap:8px">
         <select id="filterCategory" style="max-width:160px">
           <option value="">全部分組 (All)</option>
-          <option value="常用回覆">常用回覆</option>
-          <option value="專案代碼">專案代碼</option>
-          <option value="行政範本">行政範本</option>
-          <option value="其他雜項">其他雜項</option>
         </select>
         <input type="text" id="searchBox" placeholder="搜尋關鍵字..." style="max-width:200px">
       </div>
@@ -91,7 +83,7 @@ footer{margin-top:18px;font-size:13px;color:var(--mute);text-align:center}
   </div>
 
   <footer>
-    剪貼簿小工具 · 支援分組、編輯、Emoji 與深色模式
+    剪貼簿小工具 · 支援完全自訂分組、編輯、Emoji 與深色模式
   </footer>
 </main>
 
@@ -122,31 +114,43 @@ window.insertEmoji = em => {
   ta.focus();
 };
 
-let snippets = JSON.parse(localStorage.getItem('my_snippets_v3') || JSON.stringify([
-  { title: '專案回報範本', category: '專案代碼', text: '【進度回報】🚀\n專案代碼：PRJ-2026-01\n本週進度：穩定進行中 ✅\n待協調事項：無', time: new Date().toLocaleString() },
-  { title: '標準招呼語', category: '常用回覆', text: '您好，感謝您的來信與支持！我們已收到您的需求，將盡快安排處理 😊', time: new Date().toLocaleString() }
-]));
+let snippets = JSON.parse(localStorage.getItem('my_snippets_v5') || '[]');
 
 let editingIndex = null;
 
 function save() {
-  localStorage.setItem('my_snippets_v3', JSON.stringify(snippets));
+  localStorage.setItem('my_snippets_v5', JSON.stringify(snippets));
   render();
 }
 
+function updateCategoryOptions() {
+  const categories = [...new Set(snippets.map(s => s.category?.trim()).filter(Boolean))];
+  
+  // Datalist for input
+  const datalist = $('#categoryList');
+  datalist.innerHTML = categories.map(c => `<option value="${escapeHtml(c)}">`).join('');
+
+  // Filter dropdown
+  const filterSel = $('#filterCategory');
+  const currentFilter = filterSel.value;
+  filterSel.innerHTML = '<option value="">全部分組 (All)</option>' + categories.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  filterSel.value = currentFilter;
+}
+
 function render() {
+  updateCategoryOptions();
   const catFilter = $('#filterCategory').value;
   const q = $('#searchBox').value.toLowerCase();
   const grid = $('#snippetGrid');
 
   const filtered = snippets.filter(s => {
     if (catFilter && s.category !== catFilter) return false;
-    if (q && !s.title.toLowerCase().includes(q) && !s.text.toLowerCase().includes(q)) return false;
+    if (q && !s.title.toLowerCase().includes(q) && !s.text.toLowerCase().includes(q) && !(s.category||'').toLowerCase().includes(q)) return false;
     return true;
   });
   
   if (!filtered.length) {
-    grid.innerHTML = '<div style="color:var(--mute);text-align:center;padding:20px;">沒有找到符合的片段</div>';
+    grid.innerHTML = '<div style="color:var(--mute);text-align:center;padding:20px;">目前沒有任何片段，請在上方新增！</div>';
     return;
   }
 
@@ -156,7 +160,7 @@ function render() {
     return `
       <div class="snippet-card ${isEditing ? 'editing' : ''}">
         <header>
-          <span><b>${escapeHtml(s.title)}</b> <span class="tag" style="margin-left:6px">${escapeHtml(s.category || '其他')}</span> · <small>${s.time || ''}</small></span>
+          <span><b>${escapeHtml(s.title)}</b> ${s.category ? `<span class="tag" style="margin-left:6px">${escapeHtml(s.category)}</span>` : ''} · <small>${s.time || ''}</small></span>
           <div>
             <button type="button" class="btn" style="padding:4px 10px;font-size:12px;" onclick="copySnippet(${realIdx})">複製</button>
             <button type="button" class="btn ghost" style="padding:4px 10px;font-size:12px;" onclick="startEdit(${realIdx})">編輯</button>
@@ -186,9 +190,9 @@ window.startEdit = idx => {
   editingIndex = idx;
   const s = snippets[idx];
   $('#snipTitle').value = s.title;
-  $('#snipCategory').value = s.category || '常用回覆';
+  $('#snipCategory').value = s.category || '';
   $('#snipText').value = s.text;
-  $('#formTitle').innerHTML = `編輯片段 #${idx + 1} <span class="term-help">修改標題、分組或內容後儲存</span>`;
+  $('#formTitle').innerHTML = `編輯片段 #${idx + 1} <span class="term-help">修改標題、自訂分組或內容後儲存</span>`;
   $('#addBtn').textContent = '儲存修改';
   $('#cancelEditBtn').style.display = 'inline-block';
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -198,8 +202,9 @@ window.startEdit = idx => {
 window.cancelEdit = () => {
   editingIndex = null;
   $('#snipTitle').value = '';
+  $('#snipCategory').value = '';
   $('#snipText').value = '';
-  $('#formTitle').innerHTML = `新增常用片段 <span class="term-help">將常用文字分類並加入表情符號</span>`;
+  $('#formTitle').innerHTML = `新增常用片段 <span class="term-help">自行輸入自訂分組，並加入表情符號</span>`;
   $('#addBtn').textContent = '新增到片段庫';
   $('#cancelEditBtn').style.display = 'none';
   render();
@@ -217,7 +222,7 @@ window.deleteSnippet = idx => {
 
 $('#addBtn').onclick = () => {
   const title = $('#snipTitle').value.trim();
-  const category = $('#snipCategory').value;
+  const category = $('#snipCategory').value.trim();
   const text = $('#snipText').value.trim();
   if (!text) {
     alert('請輸入內容文字');
@@ -234,7 +239,7 @@ $('#addBtn').onclick = () => {
     };
     cancelEdit();
   } else {
-    // 新增
+    // 新選/新增
     snippets.unshift({
       title: title || '未命名片段',
       category: category,
@@ -242,6 +247,7 @@ $('#addBtn').onclick = () => {
       time: new Date().toLocaleString()
     });
     $('#snipTitle').value = '';
+    $('#snipCategory').value = '';
     $('#snipText').value = '';
   }
   save();
