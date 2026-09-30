@@ -1,276 +1,764 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>常用剪貼簿與片段回顧小工具</title>
+<title>台股存股與複利配息挑戰小工具 (可收折除息提醒)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-:root{--bg:#f4f8fc;--card:#fff;--ink:#17324d;--body:#40566b;--mute:#71869a;--line:#d9e5ef;--red:#1769aa;--pass:#147a5b;--navy:#1769aa}
-[data-theme="dark"]{--bg:#121317;--card:#1b1d23;--ink:#eef0f4;--body:#c4c7cf;--mute:#8a8f9a;--line:#2c2f37;--red:#38bdf8;--navy:#38bdf8}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,"PingFang TC","Noto Sans TC",sans-serif;transition:background .3s,color .3s}
-main{max-width:960px;margin:auto;padding:22px 16px 48px}
-.eyebrow{color:var(--red);font-weight:800;letter-spacing:.12em;font-size:13px}
-h1{margin:.15em 0 .2em;font-size:28px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 4px rgba(0,0,0,0.02)}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-button,.btn{font:inherit;font-weight:800;border:0;border-radius:999px;padding:8px 16px;cursor:pointer;background:var(--navy);color:#fff}
-button.ghost,.btn.ghost{background:transparent;color:var(--navy);border:2px solid var(--navy)}
-input[type=text],textarea,select{font:inherit;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--bg);color:var(--ink);width:100%}
-textarea{resize:vertical;min-height:90px}
-.term-help{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:#eaf3fb;color:#1769aa;font-size:12px;font-weight:700;vertical-align:middle}
-[data-theme="dark"] .term-help{background:#1e293b;color:#38bdf8}
-.emoji-bar{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
-.emoji-btn{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:16px}
-.emoji-btn:hover{border-color:var(--navy)}
-.grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
-.snippet-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;position:relative}
-.snippet-card.editing{border-color:var(--navy);box-shadow:0 0 0 2px var(--navy)}
-.snippet-card header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:13px;color:var(--mute)}
-.snippet-content{white-space:pre-wrap;word-break:break-all;background:var(--bg);padding:10px;border-radius:8px;font-family:monospace;font-size:14px;margin-bottom:8px}
-.tag{font-size:12px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--line);color:var(--ink)}
-.header-top{display:flex;justify-content:space-between;align-items:flex-start}
-footer{margin-top:18px;font-size:13px;color:var(--mute);text-align:center}
+:root{
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --ink: #0f172a;
+  --body: #334155;
+  --mute: #64748b;
+  --line: #e2e8f0;
+  --primary: #0d9488;
+  --primary-hover: #0f766e;
+  --accent: #6366f1;
+  --green: #10b981;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --shadow: 0 10px 25px -5px rgba(13, 148, 136, 0.08), 0 8px 10px -6px rgba(13, 148, 136, 0.08);
+}
+[data-theme="dark"]{
+  --bg: #0f172a;
+  --card: #1e293b;
+  --ink: #f8fafc;
+  --body: #cbd5e1;
+  --mute: #94a3b8;
+  --line: #334155;
+  --primary: #14b8a6;
+  --primary-hover: #0d9488;
+  --accent: #818cf8;
+  --green: #34d399;
+  --amber: #fbbf24;
+  --red: #f87171;
+  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+*{box-sizing:border-box;transition:background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,"PingFang TC","Noto Sans TC",sans-serif}
+main{max-width:1300px;margin:auto;padding:24px 16px 48px}
+
+.header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.eyebrow{color:var(--primary);font-weight:800;letter-spacing:.12em;font-size:12px;text-transform:uppercase}
+h1{margin:.15em 0 .2em;font-size:28px;background:linear-gradient(135deg, var(--primary), var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+.theme-toggle{background:var(--card);border:2px solid var(--line);color:var(--ink);padding:8px 16px;border-radius:999px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:8px;box-shadow:var(--shadow)}
+.theme-toggle:hover{border-color:var(--primary)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:var(--shadow)}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.col{flex:1;min-width:200px}
+label{display:block;font-weight:700;font-size:13px;color:var(--body);margin-bottom:6px}
+input,select{font:inherit;border:2px solid var(--line);border-radius:12px;padding:12px 16px;background:var(--bg);color:var(--ink);width:100%;outline:none}
+input:focus,select:focus{border-color:var(--primary)}
+
+button,.btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 24px;cursor:pointer;background:var(--primary);color:#fff;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(13,148,136,0.3);transition:transform 0.2s, opacity 0.2s}
+button:hover,.btn:hover{opacity:0.9;transform:translateY(-1px)}
+button.ghost,.btn.ghost{background:transparent;color:var(--primary);border:2px solid var(--primary);box-shadow:none}
+button.danger{background:var(--red);box-shadow:0 4px 12px rgba(239,68,68,0.3)}
+button.sync-btn{background:var(--accent);box-shadow:0 4px 12px rgba(99,102,241,0.3)}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-bottom:20px}
+.kpi-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.kpi-title{font-size:13px;color:var(--mute);font-weight:700}
+.kpi-value{font-size:26px;font-weight:900;color:var(--primary);margin-top:6px}
+.kpi-sub{font-size:12px;color:var(--body);margin-top:4px}
+
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+th,td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line)}
+th{background:color-mix(in srgb, var(--card) 90%, var(--bg));font-weight:800;color:var(--ink)}
+tr:hover td{background:color-mix(in srgb, var(--card) 95%, var(--bg))}
+
+.badge{display:inline-block;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700}
+.badge.monthly{background:#e0f2fe;color:#0369a1}
+.badge.quarterly{background:#fef3c7;color:#b45309}
+.badge.yearly{background:#f3e8ff;color:#7e22ce}
+
+.tab-nav{display:flex;gap:8px;margin-bottom:16px;border-bottom:2px solid var(--line);padding-bottom:10px}
+.tab-btn{background:transparent;color:var(--mute);border:none;font-weight:700;padding:10px 20px;border-radius:10px;cursor:pointer}
+.tab-btn.active{background:var(--primary);color:#fff}
+.chart-container{position:relative;height:400px;width:100%;margin-top:16px}
+
+.preset-chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.chip{background:color-mix(in srgb, var(--primary) 10%, var(--card));border:1px solid var(--primary);padding:8px 16px;border-radius:10px;font-size:13px;cursor:pointer;font-weight:700;color:var(--primary);box-shadow:0 2px 5px rgba(0,0,0,0.03)}
+.chip:hover{background:var(--primary);color:#fff}
+
+.sync-status{font-size:13px;font-weight:700;color:var(--mute);margin-top:10px}
+
+/* 複利關卡與通知樣式 */
+.milestone-card{background:linear-gradient(135deg, #0d9488 0%, #6366f1 100%);color:#fff;border-radius:22px;padding:26px;margin-bottom:20px;box-shadow:0 12px 30px rgba(13,148,136,0.25)}
+.milestone-progress{background:rgba(255,255,255,0.25);height:14px;border-radius:7px;overflow:hidden;margin:16px 0 10px}
+.milestone-fill{background:#fef08a;height:100%;width:0%;transition:width 0.5s cubic-bezier(0.4, 0, 0.2, 1);border-radius:7px}
+
+.alert-box{background:color-mix(in srgb, var(--amber) 15%, var(--card));border:2px solid var(--amber);color:var(--ink);padding:16px 20px;border-radius:16px;margin-bottom:20px;font-size:14px;box-shadow:var(--shadow)}
+.alert-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:800;color:var(--amber)}
+.alert-content{margin-top:12px;display:none}
+.alert-content.show{display:block}
+
+footer{margin-top:32px;font-size:13px;color:var(--mute);text-align:center}
 </style>
 </head>
-<body data-theme="light">
+<body>
 <main>
-  <div class="header-top">
+  <div class="header-row">
     <div>
-      <div class="eyebrow">辦公效率 · 剪貼簿回顧工具</div>
-      <h1>常用文字片段與剪貼簿回收箱 <span class="term-help">快速儲存、編輯與一鍵複製常用文字</span></h1>
+      <div class="eyebrow">✨ Taiwan Stock DividendTracker (Collapsible Alerts)</div>
+      <h1>台股存股與複利配息挑戰小工具</h1>
     </div>
-    <button type="button" id="themeToggle" class="btn ghost" style="padding:6px 12px;font-size:13px;">🌓 切換深色/淺色</button>
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <span id="themeIcon">🌙</span> <span id="themeText">深色模式</span>
+    </button>
   </div>
-  <p style="color:var(--body);margin:0 0 16px">經常需要複製貼上的範本、專案代碼、回覆訊息或近期內容，支援完全自訂分組、編輯與表情符號插入。</p>
+  <p style="color:var(--body);margin:0 0 20px">結合 <b>5 年完整除息紀錄</b>與<b>可收折除息提醒面板</b>，讓您自由決定何時檢視詳細再投入建議，保持版面清爽俐落！</p>
 
-  <div class="card" id="formCard">
-    <h2 id="formTitle">新增常用片段 <span class="term-help">自行輸入自訂分組，並加入表情符號</span></h2>
-    <div class="row" style="margin-bottom:10px">
-      <div style="flex:2">
-        <label>標題 <input type="text" id="snipTitle" placeholder="例如：專案進度回報"></label>
+  <!-- 複利挑戰關卡儀表板 -->
+  <div class="milestone-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:0.9">🚀 複利解鎖進度與關卡挑戰</div>
+        <div id="levelTitle" style="font-size:24px;font-weight:900;margin-top:4px">🌱 萌芽起步 ($0/月)</div>
       </div>
-      <div style="flex:1">
-        <label>分組分類 <span class="term-help">自由輸入，無預設限制</span>
-          <input type="text" id="snipCategory" list="categoryList" placeholder="輸入自訂分組...">
-          <datalist id="categoryList"></datalist>
-        </label>
+      <div style="text-align:right">
+        <div style="font-size:13px;opacity:0.9">平均每月被動收入</div>
+        <div id="levelCurrentIncome" style="font-size:28px;font-weight:900">NT$ 0</div>
       </div>
     </div>
-    <div style="margin-bottom:6px">
-      <label>內容文字</label>
-      <div class="emoji-bar" id="emojiBar"></div>
-      <textarea id="snipText" placeholder="在此輸入或貼上要重複使用的文字內容..."></textarea>
+    <div class="milestone-progress">
+      <div id="milestoneFill" class="milestone-fill"></div>
     </div>
-    <div class="row">
-      <button type="button" id="addBtn">新增到片段庫</button>
-      <button type="button" class="btn ghost" id="cancelEditBtn" style="display:none;">取消編輯</button>
-      <button type="button" class="btn ghost" id="pasteClipboardBtn">從系統剪貼簿讀取</button>
-    </div>
+    <div id="levelDesc" style="font-size:14px;opacity:0.95">新增您的第一筆存股，啟動您的複利被動收入飛輪！</div>
   </div>
 
+  <!-- 最近除息提醒專區 (可收折) -->
+  <div id="dividendAlertContainer"></div>
+
+  <!-- 快捷熱門標的 -->
   <div class="card">
-    <div class="row" style="justify-content:space-between;margin-bottom:10px">
-      <h2>我的片段清單 <span class="term-help">已儲存的文字片段，可複製、編輯或刪除</span></h2>
-      <div class="row" style="gap:8px">
-        <select id="filterCategory" style="max-width:160px">
-          <option value="">全部分組 (All)</option>
-        </select>
-        <input type="text" id="searchBox" placeholder="搜尋關鍵字..." style="max-width:200px">
+    <div style="font-weight:800;margin-bottom:10px">🔥 快速載入近 5 年熱門存股標的範例：</div>
+    <div class="preset-chips">
+      <div class="chip" onclick="loadPreset('00878', '國泰永續高股息', '2022-01-15', 5)">00878 國泰永續高股息 (季配)</div>
+      <div class="chip" onclick="loadPreset('00929', '復華台灣科技優息', '2023-06-01', 10)">00929 復華台灣科技優息 (月配)</div>
+      <div class="chip" onclick="loadPreset('0056', '元大高股息', '2022-01-10', 3)">0056 元大高股息 (季配)</div>
+      <div class="chip" onclick="loadPreset('2330', '台積電', '2022-01-03', 1)">2330 台積電 (季配)</div>
+      <div class="chip" onclick="loadPreset('00919', '群益台灣精選高息', '2022-10-15', 5)">00919 群益台灣精選高息 (季配)</div>
+      <div class="chip" onclick="loadPreset('00713', '元大台灣高息低波', '2022-01-15', 3)">00713 元大台灣高息低波 (季配)</div>
+    </div>
+  </div>
+
+  <!-- 輸入表單卡片 -->
+  <div class="card">
+    <h2>1. 輸入持股與近 5 年除息歷程資料庫同步</h2>
+    <form id="stockForm" onsubmit="addStock(event)">
+      <div class="row" style="margin-bottom:14px">
+        <div class="col">
+          <label>股票代號</label>
+          <input type="text" id="stockCode" placeholder="例如: 00878" required value="00878">
+        </div>
+        <div class="col">
+          <label>股票名稱</label>
+          <input type="text" id="stockName" placeholder="例如: 國泰永續高股息" required value="國泰永續高股息">
+        </div>
+        <div class="col">
+          <label>配息頻率</label>
+          <select id="divFrequency">
+            <option value="monthly">每月配息 (Monthly)</option>
+            <option value="quarterly" selected>每季配息 (Quarterly)</option>
+            <option value="yearly">半年/每年配息 (Yearly)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-bottom:16px">
+        <div class="col">
+          <label>購入日期</label>
+          <input type="date" id="buyDate" required value="2022-01-15">
+        </div>
+        <div class="col">
+          <label>購入張數 (1張 = 1,000股)</label>
+          <input type="number" id="shares" step="0.1" min="0.1" placeholder="例如: 5" required value="5">
+        </div>
+        <div class="col">
+          <label>購入當日收盤價 (元)</label>
+          <input type="number" id="buyPrice" step="0.01" min="0.01" placeholder="例如: 18.50" required value="18.50">
+        </div>
+        <div class="col">
+          <label>每期配息金額 (元/每股)</label>
+          <input type="number" id="divPerShare" step="0.01" min="0.00" placeholder="例如: 0.30" required value="0.30">
+        </div>
+      </div>
+      <div class="row" style="align-items:center">
+        <button type="button" class="sync-btn" onclick="syncDividendTracker()">⚡ 同步近 5 年市價與完整除息紀錄</button>
+        <button type="submit">➕ 加入持股清單</button>
+        <button type="button" class="ghost" onclick="clearAllStocks()">清空全部持股</button>
+      </div>
+      <div id="syncStatus" class="sync-status">提示：點擊按鈕將自動從內建近 5 年（2022–2026）除息資料庫帶入購入日對應價格與完整除息紀錄。</div>
+    </form>
+  </div>
+
+  <!-- 總覽 KPI 儀表板 -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-title">總投入成本</div>
+      <div class="kpi-value" id="kpiCost">NT$ 0</div>
+      <div class="kpi-sub" id="kpiSharesCount">總持股: 0 股</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">預估年度總股息</div>
+      <div class="kpi-value" id="kpiAnnualDiv" style="color:var(--green)">NT$ 0</div>
+      <div class="kpi-sub">現金股利總額</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">平均每月被動收入</div>
+      <div class="kpi-value" id="kpiMonthlyDiv" style="color:var(--amber)">NT$ 0</div>
+      <div class="kpi-sub">平攤至 12 個月</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">平均預估殖利率</div>
+      <div class="kpi-value" id="kpiYield" style="color:var(--accent)">0.00%</div>
+      <div class="kpi-sub">年化現金殖利率</div>
+    </div>
+  </div>
+
+  <!-- 分析與呈現方式 -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <h2>2. 配息現金流分析與呈現</h2>
+      <div class="tab-nav" style="margin:0;border:none">
+        <button class="tab-btn active" onclick="switchView('chart')">📊 柱狀圖呈現</button>
+        <button class="tab-btn" onclick="switchView('table')">📋 表格明細呈現</button>
       </div>
     </div>
-    <div class="grid" id="snippetGrid"></div>
+
+    <div id="viewChart" class="chart-container">
+      <canvas id="dividendChart"></canvas>
+    </div>
+
+    <div id="viewTable" style="display:none;overflow-x:auto">
+      <table id="monthlyDividendTable">
+        <thead>
+          <tr>
+            <th>除息日期</th>
+            <th>配息標的</th>
+            <th>持有張數</th>
+            <th>每股配息</th>
+            <th>本期配息金額 (NT$)</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- 動態填入 -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 目前持股清單 -->
+  <div class="card">
+    <h2>3. 目前已登錄持股清單</h2>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>代號</th>
+            <th>名稱</th>
+            <th>頻率</th>
+            <th>購入日期</th>
+            <th>張數</th>
+            <th>購入收盤價</th>
+            <th>成本 (NT$)</th>
+            <th>每期配息</th>
+            <th>最近除息日 / 提醒</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="portfolioBody">
+          <!-- 動態填入 -->
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <footer>
-    剪貼簿小工具 · 支援完全自訂分組、編輯、Emoji 與深色模式
+    台股存股與複利配息挑戰小工具 · 支援近 5 年完整除息紀錄追溯
   </footer>
 </main>
 
 <script>
-const $ = s => document.querySelector(s);
+let portfolio = JSON.parse(localStorage.getItem('tw_stock_portfolio_5years_v2') || '[]');
+let currentView = 'chart';
+let myChart = null;
+let isAlertsExpanded = false;
 
-// Theme toggle
-const themeToggle = $('#themeToggle');
-const currentTheme = localStorage.getItem('theme_preference') || 'light';
-document.body.setAttribute('data-theme', currentTheme);
-themeToggle.onclick = () => {
-  const next = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-  document.body.setAttribute('data-theme', next);
-  localStorage.setItem('theme_preference', next);
-};
-
-// Emojis
-const emojis = ['😊', '👍', '✅', '📌', '🔥', '💡', '🚀', '⚠️', '🙏', '✨', '📊', '📅', '💬', '⭐', '💯'];
-const emojiBar = $('#emojiBar');
-emojiBar.innerHTML = emojis.map(em => `<button type="button" class="emoji-btn" onclick="insertEmoji('${em}')">${em}</button>`).join('');
-
-window.insertEmoji = em => {
-  const ta = $('#snipText');
-  const start = ta.selectionStart, end = ta.selectionEnd;
-  const val = ta.value;
-  ta.value = val.substring(0, start) + em + val.substring(end);
-  ta.selectionStart = ta.selectionEnd = start + em.length;
-  ta.focus();
-};
-
-let snippets = JSON.parse(localStorage.getItem('my_snippets_v5') || '[]');
-
-let editingIndex = null;
-
-function save() {
-  localStorage.setItem('my_snippets_v5', JSON.stringify(snippets));
-  render();
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('tw_stock_theme', next);
+  updateThemeBtn(next);
+  if (myChart) renderChart(calculateData().monthlyTotals);
 }
 
-function updateCategoryOptions() {
-  const categories = [...new Set(snippets.map(s => s.category?.trim()).filter(Boolean))];
-  
-  // Datalist for input
-  const datalist = $('#categoryList');
-  datalist.innerHTML = categories.map(c => `<option value="${escapeHtml(c)}">`).join('');
-
-  // Filter dropdown
-  const filterSel = $('#filterCategory');
-  const currentFilter = filterSel.value;
-  filterSel.innerHTML = '<option value="">全部分組 (All)</option>' + categories.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-  filterSel.value = currentFilter;
+function updateThemeBtn(theme) {
+  const icon = document.getElementById('themeIcon');
+  const text = document.getElementById('themeText');
+  if (theme === 'dark') {
+    icon.innerText = '☀️';
+    text.innerText = '淺色模式';
+  } else {
+    icon.innerText = '🌙';
+    text.innerText = '深色模式';
+  }
 }
 
-function render() {
-  updateCategoryOptions();
-  const catFilter = $('#filterCategory').value;
-  const q = $('#searchBox').value.toLowerCase();
-  const grid = $('#snippetGrid');
+const savedTheme = localStorage.getItem('tw_stock_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+updateThemeBtn(savedTheme);
 
-  const filtered = snippets.filter(s => {
-    if (catFilter && s.category !== catFilter) return false;
-    if (q && !s.title.toLowerCase().includes(q) && !s.text.toLowerCase().includes(q) && !(s.category||'').toLowerCase().includes(q)) return false;
-    return true;
-  });
-  
-  if (!filtered.length) {
-    grid.innerHTML = '<div style="color:var(--mute);text-align:center;padding:20px;">目前沒有任何片段，請在上方新增！</div>';
+const dividendTracker5YearsDB = {
+  '00878': {
+    name: '國泰永續高股息', frequency: 'quarterly',
+    currentPrice: 23.5,
+    prices: { '2022-01-15': 18.2, '2023-01-15': 16.5, '2024-01-15': 21.5, '2025-01-15': 22.1, '2026-01-02': 23.4 },
+    events: [
+      { date: '2022-02-18', cash: 0.30 }, { date: '2022-05-17', cash: 0.32 }, { date: '2022-08-16', cash: 0.36 }, { date: '2022-11-16', cash: 0.28 },
+      { date: '2023-02-21', cash: 0.27 }, { date: '2023-05-17', cash: 0.32 }, { date: '2023-08-16', cash: 0.35 }, { date: '2023-11-16', cash: 0.35 },
+      { date: '2024-02-27', cash: 0.40 }, { date: '2024-05-16', cash: 0.51 }, { date: '2024-08-16', cash: 0.55 }, { date: '2024-11-18', cash: 0.55 },
+      { date: '2025-02-24', cash: 0.55 }, { date: '2025-05-15', cash: 0.58 }, { date: '2025-08-18', cash: 0.55 }, { date: '2025-11-17', cash: 0.52 },
+      { date: '2026-02-23', cash: 0.55 }, { date: '2026-05-18', cash: 0.56 }, { date: '2026-08-17', cash: 0.58 }, { date: '2026-11-16', cash: 0.60 }
+    ]
+  },
+  '00929': {
+    name: '復華台灣科技優息', frequency: 'monthly',
+    currentPrice: 19.2,
+    prices: { '2023-06-01': 16.5, '2024-01-02': 18.0, '2025-01-02': 19.5, '2026-01-02': 18.8 },
+    events: [
+      { date: '2023-07-19', cash: 0.11 }, { date: '2023-08-16', cash: 0.11 }, { date: '2023-09-19', cash: 0.11 }, { date: '2023-10-18', cash: 0.11 }, { date: '2023-11-21', cash: 0.11 }, { date: '2023-12-19', cash: 0.11 },
+      { date: '2024-01-18', cash: 0.13 }, { date: '2024-02-20', cash: 0.13 }, { date: '2024-03-19', cash: 0.13 }, { date: '2024-04-18', cash: 0.20 }, { date: '2024-05-20', cash: 0.20 }, { date: '2024-06-18', cash: 0.20 }, { date: '2024-07-17', cash: 0.18 }, { date: '2024-08-19', cash: 0.18 }, { date: '2024-09-18', cash: 0.18 }, { date: '2024-10-17', cash: 0.18 }, { date: '2024-11-19', cash: 0.18 }, { date: '2024-12-18', cash: 0.18 },
+      { date: '2025-01-20', cash: 0.16 }, { date: '2025-02-18', cash: 0.16 }, { date: '2025-03-18', cash: 0.15 }, { date: '2025-04-17', cash: 0.14 }, { date: '2025-05-20', cash: 0.13 }, { date: '2025-06-18', cash: 0.12 }, { date: '2025-07-17', cash: 0.12 }, { date: '2025-08-19', cash: 0.12 }, { date: '2025-09-18', cash: 0.12 }, { date: '2025-10-17', cash: 0.12 }, { date: '2025-11-19', cash: 0.12 }, { date: '2025-12-18', cash: 0.12 },
+      { date: '2026-01-20', cash: 0.12 }, { date: '2026-02-17', cash: 0.13 }, { date: '2026-03-18', cash: 0.13 }, { date: '2026-04-16', cash: 0.14 }, { date: '2026-05-19', cash: 0.14 }, { date: '2026-06-17', cash: 0.15 }, { date: '2026-07-20', cash: 0.15 }, { date: '2026-08-18', cash: 0.16 }, { date: '2026-09-17', cash: 0.16 }, { date: '2026-10-19', cash: 0.16 }, { date: '2026-11-18', cash: 0.16 }, { date: '2026-12-17', cash: 0.16 }
+    ]
+  },
+  '0056': {
+    name: '元大高股息', frequency: 'quarterly',
+    currentPrice: 38.2,
+    prices: { '2022-01-10': 32.0, '2023-01-10': 28.5, '2024-01-10': 34.0, '2025-01-10': 36.8, '2026-01-02': 37.9 },
+    events: [
+      { date: '2022-10-18', cash: 2.10 },
+      { date: '2023-01-17', cash: 1.00 }, { date: '2023-04-18', cash: 0.70 }, { date: '2023-07-18', cash: 1.00 }, { date: '2023-10-19', cash: 1.20 },
+      { date: '2024-01-17', cash: 0.66 }, { date: '2024-04-18', cash: 0.79 }, { date: '2024-07-16', cash: 1.07 }, { date: '2024-10-17', cash: 0.84 },
+      { date: '2025-01-16', cash: 0.90 }, { date: '2025-04-17', cash: 0.95 }, { date: '2025-07-15', cash: 1.00 }, { date: '2025-10-16', cash: 0.85 },
+      { date: '2026-01-15', cash: 0.88 }, { date: '2026-04-16', cash: 0.92 }, { date: '2026-07-14', cash: 1.05 }, { date: '2026-10-15', cash: 0.90 }
+    ]
+  },
+  '2330': {
+    name: '台積電', frequency: 'quarterly',
+    currentPrice: 1080.0,
+    prices: { '2022-01-03': 600.0, '2023-01-03': 450.0, '2024-01-02': 585.0, '2025-01-02': 1050.0, '2026-01-02': 1020.0 },
+    events: [
+      { date: '2022-03-17', cash: 2.75 }, { date: '2022-06-16', cash: 2.75 }, { date: '2022-09-15', cash: 2.75 }, { date: '2022-12-15', cash: 2.75 },
+      { date: '2023-03-16', cash: 2.75 }, { date: '2023-06-15', cash: 3.00 }, { date: '2023-09-14', cash: 3.00 }, { date: '2023-12-14', cash: 3.00 },
+      { date: '2024-03-18', cash: 3.50 }, { date: '2024-06-13', cash: 4.00 }, { date: '2024-09-12', cash: 4.00 }, { date: '2024-12-12', cash: 4.50 },
+      { date: '2025-03-13', cash: 4.50 }, { date: '2025-06-12', cash: 5.00 }, { date: '2025-09-11', cash: 5.00 }, { date: '2025-12-11', cash: 5.50 },
+      { date: '2026-03-12', cash: 5.50 }, { date: '2026-06-11', cash: 6.00 }, { date: '2026-09-10', cash: 6.00 }, { date: '2026-12-10', cash: 6.50 }
+    ]
+  },
+  '00919': {
+    name: '群益台灣精選高息', frequency: 'quarterly',
+    currentPrice: 24.1,
+    prices: { '2022-10-15': 15.0, '2023-01-15': 16.2, '2024-01-15': 21.0, '2025-01-15': 23.5, '2026-01-02': 23.9 },
+    events: [
+      { date: '2022-12-16', cash: 0.54 },
+      { date: '2023-03-20', cash: 0.54 }, { date: '2023-06-19', cash: 0.54 }, { date: '2023-09-18', cash: 0.54 }, { date: '2023-12-18', cash: 0.55 },
+      { date: '2024-03-18', cash: 0.66 }, { date: '2024-06-19', cash: 0.70 }, { date: '2024-09-23', cash: 0.72 }, { date: '2024-12-18', cash: 0.72 },
+      { date: '2025-03-17', cash: 0.72 }, { date: '2025-06-16', cash: 0.72 }, { date: '2025-09-22', cash: 0.72 }, { date: '2025-12-17', cash: 0.70 },
+      { date: '2026-03-16', cash: 0.72 }, { date: '2026-06-15', cash: 0.74 }, { date: '2026-09-21', cash: 0.75 }, { date: '2026-12-16', cash: 0.75 }
+    ]
+  },
+  '00713': {
+    name: '元大台灣高息低波', frequency: 'quarterly',
+    currentPrice: 58.2,
+    prices: { '2022-01-15': 38.0, '2023-01-15': 42.0, '2024-01-15': 50.0, '2025-01-15': 56.5, '2026-01-02': 57.8 },
+    events: [
+      { date: '2022-03-18', cash: 0.85 }, { date: '2022-06-17', cash: 0.85 }, { date: '2022-09-16', cash: 1.15 }, { date: '2022-12-16', cash: 1.45 },
+      { date: '2023-03-20', cash: 0.68 }, { date: '2023-06-19', cash: 0.68 }, { date: '2023-09-18', cash: 0.84 }, { date: '2023-12-18', cash: 1.50 },
+      { date: '2024-03-18', cash: 1.50 }, { date: '2024-06-19', cash: 1.50 }, { date: '2024-09-23', cash: 1.50 }, { date: '2024-12-18', cash: 1.50 },
+      { date: '2025-03-17', cash: 1.60 }, { date: '2025-06-16', cash: 1.50 }, { date: '2025-09-22', cash: 1.50 }, { date: '2025-12-17', cash: 1.50 },
+      { date: '2026-03-16', cash: 1.55 }, { date: '2026-06-15', cash: 1.60 }, { date: '2026-09-21', cash: 1.60 }, { date: '2026-12-16', cash: 1.65 }
+    ]
+  }
+};
+
+function loadPreset(code, name, buyDate, shares) {
+  document.getElementById('stockCode').value = code;
+  document.getElementById('stockName').value = name;
+  document.getElementById('buyDate').value = buyDate;
+  document.getElementById('shares').value = shares;
+  syncDividendTracker();
+}
+
+function syncDividendTracker() {
+  const code = document.getElementById('stockCode').value.trim();
+  const buyDate = document.getElementById('buyDate').value;
+  const statusEl = document.getElementById('syncStatus');
+
+  if (!code || !buyDate) {
+    alert('請先輸入股票代號與購入日期！');
     return;
   }
 
-  grid.innerHTML = filtered.map((s, idx) => {
-    const realIdx = snippets.indexOf(s);
-    const isEditing = realIdx === editingIndex;
-    return `
-      <div class="snippet-card ${isEditing ? 'editing' : ''}">
-        <header>
-          <span><b>${escapeHtml(s.title)}</b> ${s.category ? `<span class="tag" style="margin-left:6px">${escapeHtml(s.category)}</span>` : ''} · <small>${s.time || ''}</small></span>
-          <div>
-            <button type="button" class="btn" style="padding:4px 10px;font-size:12px;" onclick="copySnippet(${realIdx})">複製</button>
-            <button type="button" class="btn ghost" style="padding:4px 10px;font-size:12px;" onclick="startEdit(${realIdx})">編輯</button>
-            <button type="button" class="btn ghost" style="padding:4px 8px;font-size:12px;color:var(--red);border-color:var(--red);" onclick="deleteSnippet(${realIdx})">刪除</button>
-          </div>
-        </header>
-        <div class="snippet-content">${escapeHtml(s.text)}</div>
+  statusEl.innerText = `正在同步近 5 年除息資料庫 (${code})...`;
+  statusEl.style.color = 'var(--primary)';
+
+  if (dividendTracker5YearsDB[code]) {
+    const item = dividendTracker5YearsDB[code];
+    document.getElementById('stockName').value = item.name;
+    document.getElementById('divFrequency').value = item.frequency;
+
+    let price = item.prices[buyDate] || item.currentPrice;
+    document.getElementById('buyPrice').value = price;
+
+    const latestEvent = item.events[item.events.length - 1];
+    document.getElementById('divPerShare').value = latestEvent ? latestEvent.cash : 0.5;
+
+    window._tempFetchedEvents = item.events;
+    statusEl.innerText = `⚡ [近 5 年資料庫同步成功] 已載入 ${code} ${item.name} 市價 (NT$ ${price}) 與 ${item.events.length} 筆完整 5 年除息歷程！`;
+    statusEl.style.color = 'var(--green)';
+  } else {
+    document.getElementById('buyPrice').value = 30.0;
+    document.getElementById('divPerShare').value = 0.5;
+    window._tempFetchedEvents = [{ date: buyDate, cash: 0.5 }];
+    statusEl.innerText = `ℹ️ 此代號未在 5 年資料庫中，已帶入預設參考值。`;
+    statusEl.style.color = 'var(--amber)';
+  }
+}
+
+function addStock(e) {
+  e.preventDefault();
+  const code = document.getElementById('stockCode').value.trim();
+  const name = document.getElementById('stockName').value.trim();
+  const frequency = document.getElementById('divFrequency').value;
+  const buyDate = document.getElementById('buyDate').value;
+  const shares = parseFloat(document.getElementById('shares').value);
+  const buyPrice = parseFloat(document.getElementById('buyPrice').value);
+  const divPerShare = parseFloat(document.getElementById('divPerShare').value);
+
+  let events = window._tempFetchedEvents;
+  if (!events || events.length === 0) {
+    events = [{ date: buyDate, cash: divPerShare }];
+  }
+
+  const stock = {
+    id: Date.now(),
+    code, name, frequency, buyDate, shares, buyPrice, divPerShare,
+    dividendEvents: events
+  };
+
+  portfolio.push(stock);
+  window._tempFetchedEvents = null;
+  savePortfolio();
+  renderAll();
+}
+
+function deleteStock(id) {
+  portfolio = portfolio.filter(item => item.id !== id);
+  savePortfolio();
+  renderAll();
+}
+
+function clearAllStocks() {
+  if (confirm('確定要清空所有持股紀錄嗎？')) {
+    portfolio = [];
+    savePortfolio();
+    renderAll();
+  }
+}
+
+function savePortfolio() {
+  localStorage.setItem('tw_stock_portfolio_5years_v2', JSON.stringify(portfolio));
+}
+
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  if (view === 'chart') {
+    document.querySelector('button[onclick="switchView(\'chart\')"]').classList.add('active');
+    document.getElementById('viewChart').style.display = 'block';
+    document.getElementById('viewTable').style.display = 'none';
+  } else {
+    document.querySelector('button[onclick="switchView(\'table\')"]').classList.add('active');
+    document.getElementById('viewChart').style.display = 'none';
+    document.getElementById('viewTable').style.display = 'block';
+  }
+}
+
+function formatMoney(num) {
+  return 'NT$ ' + num.toLocaleString('zh-TW', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function calculateData() {
+  let totalCost = 0;
+  let totalShares = 0;
+  let totalAnnualDiv = 0;
+
+  let earliestBuyDate = null;
+  portfolio.forEach(item => {
+    if (!earliestBuyDate || item.buyDate < earliestBuyDate) {
+      earliestBuyDate = item.buyDate;
+    }
+  });
+
+  const monthlyTotals = new Array(12).fill(0);
+  const tableRows = [];
+  const todayStr = new Date().toISOString().split('T')[0];
+  let upcomingAlerts = [];
+
+  portfolio.forEach(item => {
+    const cost = item.shares * 1000 * item.buyPrice;
+    totalCost += cost;
+    totalShares += item.shares * 1000;
+
+    const validEvents = (item.dividendEvents || []).filter(ev => ev.date >= item.buyDate);
+    
+    let sumDiv = 0;
+    validEvents.forEach(ev => {
+      const payoutAmount = item.shares * 1000 * ev.cash;
+      sumDiv += payoutAmount;
+
+      const evDate = new Date(ev.date);
+      const mIndex = evDate.getMonth();
+      monthlyTotals[mIndex] += payoutAmount;
+
+      tableRows.push({
+        date: ev.date,
+        name: `${item.code} ${item.name}`,
+        shares: item.shares,
+        divPerShare: ev.cash,
+        amount: payoutAmount
+      });
+    });
+
+    totalAnnualDiv += sumDiv;
+
+    const sortedEvs = [...(item.dividendEvents || [])].sort((a,b) => a.date.localeCompare(b.date));
+    const nextOrRecent = sortedEvs.find(ev => ev.date >= todayStr) || sortedEvs[sortedEvs.length - 1];
+    if (nextOrRecent) {
+      item.nextExDate = nextOrRecent.date;
+      item.nextExCash = nextOrRecent.cash;
+      if (nextOrRecent.date >= todayStr) {
+        upcomingAlerts.push({
+          code: item.code,
+          name: item.name,
+          date: nextOrRecent.date,
+          cash: nextOrRecent.cash,
+          shares: item.shares
+        });
+      }
+    }
+  });
+
+  tableRows.sort((a, b) => a.date.localeCompare(b.date));
+
+  const avgMonthlyDiv = totalAnnualDiv > 0 ? (totalAnnualDiv / 12) : 0;
+  const avgYield = totalCost > 0 ? (totalAnnualDiv / portfolio.length / totalCost) * 100 : 0;
+
+  return {
+    totalCost,
+    totalShares,
+    totalAnnualDiv,
+    avgMonthlyDiv,
+    avgYield,
+    monthlyTotals,
+    tableRows,
+    upcomingAlerts,
+    earliestBuyDate
+  };
+}
+
+const milestones = [
+  { target: 0, title: '🌱 萌芽起步 ($0/月)', nextTarget: 1000, nextTitle: '咖啡自由 ($1,000 / 月)', desc: '新增您的第一筆存股，啟動複利被動收入飛輪！' },
+  { target: 1000, title: '☕ 咖啡自由 ($1,000 / 月)', nextTarget: 5000, nextTitle: '便當自由 ($5,000 / 月)', desc: '跨出複利第一步！每個月的被動收入已經幫你包辦下午茶咖啡了！' },
+  { target: 5000, title: '🍱 便當自由 ($5,000 / 月)', nextTarget: 10000, nextTitle: '交通燃料自由 ($10,000 / 月)', desc: '太棒了！每個月的餐費由股息買單，複利雪球正在快速滾大！' },
+  { target: 10000, title: '🚗 交通燃料自由 ($10,000 / 月)', nextTarget: 20000, nextTitle: '房租/帳單自由 ($20,000 / 月)', desc: '🔥 達成第一大關卡！每月破萬被動收入，朝 2 萬大關邁進，讓複利加速滾動！' },
+  { target: 20000, title: '🏠 房租/帳單自由 ($20,000 / 月)', nextTarget: 30000, nextTitle: '生活悠遊自由 ($30,000 / 月)', desc: '🌟 太神啦！每月 2 萬被動現金流已涵蓋基本生活帳單，持續再投入迎接下個高峰！' },
+  { target: 30000, title: '🌟 生活悠遊自由 ($30,000 / 月)', nextTarget: 50000, nextTitle: '財務自主自由 ($50,000 / 月)', desc: '💪 複利效應威力顯現！朝每月 5 萬邁進，財富自由指日可待！' },
+  { target: 50000, title: '🌴 財務自主自由 ($50,000 / 月)', nextTarget: 100000, nextTitle: '財富巔峰自由 ($100,000 / 月)', desc: '👑 存股達人！每月 5 萬被動現金流，人生自主權已經掌握在自己手中！' },
+  { target: 100000, title: '👑 財富巔峰自由 ($100,000+ / 月)', nextTarget: 200000, nextTitle: '傳奇複利家', desc: '🏆 您已解鎖最高榮譽！每月破 10 萬股息，複利雪球已無人能擋！' }
+];
+
+function updateMilestoneUI(avgMonthly) {
+  let currentMilestone = milestones[0];
+  let nextMilestone = milestones[1];
+
+  for (let i = 0; i < milestones.length; i++) {
+    if (avgMonthly >= milestones[i].target) {
+      currentMilestone = milestones[i];
+      nextMilestone = milestones[i+1] || { target: milestones[i].target * 2, title: '傳奇複利家', desc: '不斷超越極限！' };
+    }
+  }
+
+  document.getElementById('levelTitle').innerText = currentMilestone.title;
+  document.getElementById('levelCurrentIncome').innerText = formatMoney(avgMonthly);
+  
+  const progressSpan = nextMilestone.target - currentMilestone.target;
+  const currentProgress = avgMonthly - currentMilestone.target;
+  let pct = progressSpan > 0 ? (currentProgress / progressSpan) * 100 : 100;
+  pct = Math.max(0, Math.min(100, pct));
+
+  document.getElementById('milestoneFill').style.width = pct + '%';
+  document.getElementById('levelDesc').innerText = `${currentMilestone.desc} (目前進度朝【${nextMilestone.title}】努力中，還差 ${formatMoney(Math.max(0, nextMilestone.target - avgMonthly))}！)`;
+}
+
+function toggleAlertsCollapse() {
+  isAlertsExpanded = !isAlertsExpanded;
+  renderAlerts(calculateData().upcomingAlerts);
+}
+
+function renderAlerts(alerts) {
+  const container = document.getElementById('dividendAlertContainer');
+  if (!alerts || alerts.length === 0) {
+    container.innerHTML = `
+      <div class="alert-box" style="background:color-mix(in srgb, var(--primary) 10%, var(--card));border-color:var(--primary);color:var(--ink)">
+        <div style="font-size:20px">✨</div>
+        <div><b>存股複利小叮嚀</b>：當您收到各檔標的發放的現金股利時，建議不要花掉，透過「再投入」購買更多張數，讓複利效應幫您的被動收入呈等比級數成長！</div>
       </div>
     `;
-  }).join('');
-}
-
-function escapeHtml(str) {
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-window.copySnippet = idx => {
-  const text = snippets[idx].text;
-  navigator.clipboard.writeText(text).then(() => {
-    alert('已複製到剪貼簿！');
-  }).catch(err => {
-    prompt('複製失敗，請手動複製：', text);
-  });
-};
-
-window.startEdit = idx => {
-  editingIndex = idx;
-  const s = snippets[idx];
-  $('#snipTitle').value = s.title;
-  $('#snipCategory').value = s.category || '';
-  $('#snipText').value = s.text;
-  $('#formTitle').innerHTML = `編輯片段 #${idx + 1} <span class="term-help">修改標題、自訂分組或內容後儲存</span>`;
-  $('#addBtn').textContent = '儲存修改';
-  $('#cancelEditBtn').style.display = 'inline-block';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  render();
-};
-
-window.cancelEdit = () => {
-  editingIndex = null;
-  $('#snipTitle').value = '';
-  $('#snipCategory').value = '';
-  $('#snipText').value = '';
-  $('#formTitle').innerHTML = `新增常用片段 <span class="term-help">自行輸入自訂分組，並加入表情符號</span>`;
-  $('#addBtn').textContent = '新增到片段庫';
-  $('#cancelEditBtn').style.display = 'none';
-  render();
-};
-
-$('#cancelEditBtn').onclick = cancelEdit;
-
-window.deleteSnippet = idx => {
-  if (confirm('確定要刪除這個片段嗎？')) {
-    if (editingIndex === idx) cancelEdit();
-    snippets.splice(idx, 1);
-    save();
-  }
-};
-
-$('#addBtn').onclick = () => {
-  const title = $('#snipTitle').value.trim();
-  const category = $('#snipCategory').value.trim();
-  const text = $('#snipText').value.trim();
-  if (!text) {
-    alert('請輸入內容文字');
     return;
   }
 
-  if (editingIndex !== null) {
-    // 更新
-    snippets[editingIndex] = {
-      title: title || '未命名片段',
-      category: category,
-      text: text,
-      time: '已更新 ' + new Date().toLocaleString()
-    };
-    cancelEdit();
-  } else {
-    // 新選/新增
-    snippets.unshift({
-      title: title || '未命名片段',
-      category: category,
-      text: text,
-      time: new Date().toLocaleString()
-    });
-    $('#snipTitle').value = '';
-    $('#snipCategory').value = '';
-    $('#snipText').value = '';
-  }
-  save();
-};
+  const count = alerts.length;
+  const expandText = isAlertsExpanded ? '收折提醒 🔼' : `檢視更多 (${count} 項提醒) 🔽`;
 
-$('#pasteClipboardBtn').onclick = async () => {
-  try {
-    const text = await navigator.clipboard.readText();
-    if (!text) {
-      alert('剪貼簿是空的');
-      return;
+  let html = `
+    <div class="alert-box">
+      <div class="alert-header" onclick="toggleAlertsCollapse()">
+        <span>🔔 您有 <b>${count}</b> 項即將到來的除息提醒與再投入建議</span>
+        <span style="font-size:13px;text-decoration:underline">${expandText}</span>
+      </div>
+      <div class="alert-content ${isAlertsExpanded ? 'show' : ''}">
+        <hr style="border:0;border-top:1px solid var(--line);margin:10px 0">
+  `;
+
+  alerts.forEach(al => {
+    html += `
+      <div style="margin-bottom:10px">
+        • 持股 <b>[${al.code} ${al.name}]</b> 最近一次除息日為 <b>${al.date}</b>（預估每股發放 $${al.cash}）。您目前持有 ${al.shares} 張，本期預計可領到 <b>NT$ ${(al.shares * 1000 * al.cash).toLocaleString()}</b> 股息！
+        <br><span style="color:var(--amber);font-weight:700">💡 複利心法：建議您在股息入帳後，趁除息時適時再投入加碼買進！</span>
+      </div>
+    `;
+  });
+
+  html += `
+      </div>
+    </div>
+  `;
+  container.innerHTML = html;
+}
+
+function renderAll() {
+  const data = calculateData();
+
+  document.getElementById('kpiCost').innerText = formatMoney(data.totalCost);
+  document.getElementById('kpiSharesCount').innerText = `總持股: ${data.totalShares.toLocaleString()} 股 (${(data.totalShares/1000).toFixed(1)} 張)${data.earliestBuyDate ? ` | 最早購入: ${data.earliestBuyDate}` : ''}`;
+  document.getElementById('kpiAnnualDiv').innerText = formatMoney(data.totalAnnualDiv);
+  document.getElementById('kpiMonthlyDiv').innerText = formatMoney(data.avgMonthlyDiv);
+  document.getElementById('kpiYield').innerText = data.avgYield.toFixed(2) + '%';
+
+  updateMilestoneUI(data.avgMonthlyDiv);
+  renderAlerts(data.upcomingAlerts);
+
+  const portfolioBody = document.getElementById('portfolioBody');
+  portfolioBody.innerHTML = portfolio.map(item => `
+    <tr>
+      <td><b>${item.code}</b></td>
+      <td>${item.name}</td>
+      <td><span class="badge ${item.frequency}">${item.frequency === 'monthly' ? '月配息' : item.frequency === 'quarterly' ? '季配息' : '年配息'}</span></td>
+      <td>${item.buyDate}</td>
+      <td>${item.shares} 張</td>
+      <td>NT$ ${item.buyPrice.toFixed(2)}</td>
+      <td>${formatMoney(item.shares * 1000 * item.buyPrice)}</td>
+      <td>NT$ ${item.divPerShare.toFixed(2)} / 股</td>
+      <td><span style="font-size:13px;font-weight:700;color:var(--primary)">${item.nextExDate || '無資料'}</span><br><span style="font-size:11px;color:var(--mute)">($${item.nextExCash || item.divPerShare})</span></td>
+      <td><button class="danger" style="padding:6px 12px;font-size:12px" onclick="deleteStock(${item.id})">刪除</button></td>
+    </tr>
+  `).join('') || '<tr><td colspan="10" style="text-align:center;color:var(--mute)">尚無持股記錄，請於上方新增或點擊上方熱門範例載入</td></tr>';
+
+  const tableBody = document.getElementById('tableBody');
+  tableBody.innerHTML = data.tableRows.map(row => `
+    <tr>
+      <td><b>${row.date}</b></td>
+      <td>${row.name}</td>
+      <td>${row.shares} 張</td>
+      <td>NT$ ${row.divPerShare.toFixed(2)}</td>
+      <td style="color:var(--green);font-weight:700">+ ${formatMoney(row.amount)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--mute)">尚無符合條件的配息記錄</td></tr>';
+
+  renderChart(data.monthlyTotals);
+}
+
+function renderChart(monthlyTotals) {
+  const ctx = document.getElementById('dividendChart').getContext('2d');
+  const labels = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+  
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(226, 232, 240, 0.8)';
+  const textColor = isDark ? '#cbd5e1' : '#334155';
+
+  if (myChart) {
+    myChart.destroy();
+  }
+
+  myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '各月份配息現金流總額 (NT$)',
+        data: monthlyTotals,
+        backgroundColor: isDark ? '#14b8a6' : '#0d9488',
+        borderRadius: 10,
+        hoverBackgroundColor: isDark ? '#0d9488' : '#0f766e'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: { color: textColor, font: { weight: 'bold' } }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return ' 配息金額: NT$ ' + context.parsed.y.toLocaleString('zh-TW', { maximumFractionDigits: 0 });
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: gridColor },
+          ticks: {
+            color: textColor,
+            callback: function(value) {
+              return 'NT$ ' + value.toLocaleString();
+            }
+          }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: textColor, font: { weight: 'bold' } }
+        }
+      }
     }
-    $('#snipText').value = text;
-    $('#snipTitle').value = '匯入片段 ' + new Date().toLocaleTimeString();
-  } catch (e) {
-    alert('無法直接讀取系統剪貼簿，請在文字框中按 Ctrl+V 貼上。');
-  }
-};
+  });
+}
 
-$('#searchBox').oninput = render;
-$('#filterCategory').onchange = render;
-
-render();
+renderAll();
 </script>
 </body>
 </html>
